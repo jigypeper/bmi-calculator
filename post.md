@@ -53,5 +53,26 @@ let weight: f32 = ask_question("Enter your weight in kilograms: ")
     .parse::<f32>()
     .expect("Please enter a valid decimal number for weight.");
 
+let bmi = weight / (height * height);
+
 ```
 
+Each parse call attempts to convert the string input into a floating-point number, a common operation 
+when dealing with numerical user input. The expect method provides a simple way to crash the program 
+with a friendly error message if the parsing fails, indicating the input wasn't a valid number.
+
+Once we have our number, we can use the match statement in rust to display an output to the user.
+Think of a match statement as a powerful control flow construct that allows you to compare a value against 
+a series of patterns and execute code based on which pattern matches. It's similar to the switch case 
+statement found in other languages like C or Java but much more powerful due to Rust's pattern matching 
+capabilities. Although, in the case below, an if statement would work just as well.
+
+```rust
+match bmi {
+    val if val >= 30.0 => println!("According to these numbers, you are obese..."),
+    val if val >= 25.0 && val < 30.0 => println!("You are overweight..."),
+    val if val >= 18.5 && val < 25.0 => println!("You are normal"),
+    _ => println!("You are underweight"),
+};
+
+```
