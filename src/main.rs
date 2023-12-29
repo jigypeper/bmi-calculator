@@ -1,35 +1,41 @@
-use std::io;
+use std::{fmt::Debug, io, str::FromStr};
 
-// TODO: Make this function able to output other data types?
-// or just parse strings to other types in main fn
-fn ask_question(question: &str) -> String {
-    println!("{question}");
-    let mut input: String = String::new();
+fn ask_question<T>(question: &str) -> T
+where
+    T: FromStr,
+    <T as FromStr>::Err: Debug,
+{
+    loop {
+        println!("{question}");
+        let mut input = String::new();
 
-    io::stdin()
-        .read_line(&mut input)
-        .expect("Oops! Looks like there be a sea monster in the I/O waters.");
+        io::stdin()
+            .read_line(&mut input)
+            .expect("Failed to read input");
 
-    input.trim().to_string()
+        match input.trim().parse::<T>() {
+            Ok(num) => return num,
+            Err(e) => println!("{:?}, please try again.", e),
+        }
+    }
 }
 
 fn main() {
     println!("BMI Calculator\n==============");
     let height: f32 =
-        ask_question("What is your height? in METRES please, none of that imperial crap")
-            .trim()
-            .parse::<f32>()
-            .expect("You haven't entered a valid decimal number");
-    let weight: f32 = ask_question("What is your weight? In Kilograms!")
-        .trim()
-        .parse()
-        .expect("You haven't entered a valid decimal number");
+        ask_question("What is your height? in METRES please, none of that imperial crap");
+    let weight: f32 = ask_question("What is your weight? In Kilograms!");
     let bmi = weight / (height * height);
 
     match bmi {
-        val if val >= 30.0 => println!("According to these numbers, you are obese..."),
-        val if val >= 25.0 && val < 30.0 => println!("You are overweight..."),
-        val if val >= 18.5 && val < 25.0 => println!("You are normal"),
-        _ => println!("You are underweight"),
+        val if val >= 30.0 => {
+            println!(
+                "BMI: {:.2}, according to these numbers, you are obese...",
+                bmi
+            )
+        }
+        val if val >= 25.0 && val < 30.0 => println!("BMI: {:.2}, you are overweight...", bmi),
+        val if val >= 18.5 && val < 25.0 => println!("BMI: {:.2}, you are normal", bmi),
+        _ => println!("BMI: {:.2}, you are underweight", bmi),
     };
 }

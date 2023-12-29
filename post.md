@@ -76,3 +76,102 @@ match bmi {
 };
 
 ```
+### Improvements
+Currently our program has a couple of problems:
+1. We are repeating ourselves in the main function by parsing each input individually.
+2. We are panicking when the user enters a value that can't be parsed.
+
+To tackle point 1, we could employ generics and trait bounds. We can extend our function to output a generic
+type (T), which implements the FromStr trait (which will have to be imported).
+
+```rust
+fn ask_question<T>(question: &str) -> T
+where
+    T: FromStr,                 // T must implement FromStr
+    <T as FromStr>::Err: Debug, // The associated Err type must implement Debug
+{
+    println!("{question}");
+    let mut input = String::new();
+
+    io::stdin()
+        .read_line(&mut input)
+        .expect("Failed to read input");
+
+    input.trim().parse::<T>().expect("Could not parse")
+}
+```
+To address point 2, we could wrap our function in a loop, and give the user the chance to enter a value we can 
+actually parse.
+
+```rust
+fn ask_question<T>(question: &str) -> T
+where
+    T: FromStr,                 // T must implement FromStr
+    <T as FromStr>::Err: Debug, // The associated Err type must implement Debug
+{
+    loop {
+        println!("{question}");
+        let mut input = String::new();
+
+        io::stdin()
+            .read_line(&mut input)
+            .expect("Failed to read input");
+
+        match input.trim().parse::<T>() {
+            Ok(num) => num,
+            Err(e) => println!("{:?}, please try again.", e)
+        }
+    }
+}
+```
+Our final draft now looks like this:
+```rust
+use std::{fmt::Debug, io, str::FromStr};
+
+fn ask_question<T>(question: &str) -> T
+where
+    T: FromStr,
+    <T as FromStr>::Err: Debug,
+{
+    loop {
+        println!("{question}");
+        let mut input = String::new();
+
+        io::stdin()
+            .read_line(&mut input)
+            .expect("Failed to read input");
+
+        match input.trim().parse::<T>() {
+            Ok(num) => return num,
+            Err(e) => println!("{:?}, please try again.", e),
+        }
+    }
+}
+
+fn main() {
+    println!("BMI Calculator\n==============");
+    let height: f32 =
+        ask_question("What is your height? in METRES please, none of that imperial crap");
+    let weight: f32 = ask_question("What is your weight? In Kilograms!");
+    let bmi = weight / (height * height);
+
+    match bmi {
+        val if val >= 30.0 => {
+            println!(
+                "BMI: {:.2}, according to these numbers, you are obese...",
+                bmi
+            )
+        }
+        val if val >= 25.0 && val < 30.0 => println!("BMI: {:.2}, you are overweight...", bmi),
+        val if val >= 18.5 && val < 25.0 => println!("BMI: {:.2}, you are normal", bmi),
+        _ => println!("BMI: {:.2}, you are underweight", bmi),
+    };
+}
+
+```
+### Conclusion
+
+In crafting a simple BMI calculator, we've seen how Rust handles user input and data parsing, along with strategies 
+to improve user interaction and input validation. While our focus was narrow, the principles and practices discussed 
+here are widely applicable in Rust programming. As you develop in Rust, keep these ideas in mind to create more 
+robust, efficient, and user-friendly applications.
